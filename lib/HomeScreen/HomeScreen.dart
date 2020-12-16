@@ -1,8 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:huy_commerce/Model/ProductModel.dart';
 import 'package:huy_commerce/Products/ProductBox.dart';
+import 'package:huy_commerce/Products/ProductList.dart';
 import 'package:huy_commerce/UserInformation/UserInformation.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -17,35 +20,13 @@ class HomeScreen extends StatelessWidget {
                 Icons.shopping_cart,
                 color: Colors.white,
               ),
-              onPressed: () {
-                Navigator.of(context)
-                    .push(MaterialPageRoute(builder: (context) => Scaffold()));
+              onPressed: (){
               },
             ),
           ],
         ),
         drawer: DrawerMenu(),
-        body: StreamBuilder(
-            stream:
-                FirebaseFirestore.instance.collection('Product').snapshots(),
-            builder: (context, snapshot) {
-              if (snapshot.hasError)
-                return Center(
-                  child: CircularProgressIndicator(),
-                );
-              return GridView.count(
-                crossAxisCount: 2,
-                crossAxisSpacing: 6,
-                mainAxisSpacing: 6,
-                childAspectRatio: 3 / 5.3,
-                padding: EdgeInsets.symmetric(horizontal: 6),
-                children: List.generate(20, (index) => index)
-                    .map(
-                      (index) => ProductBox(),
-                    )
-                    .toList(),
-              );
-            }),
+        body: ProductList(),
       ),
     );
   }

@@ -26,8 +26,8 @@ class MyApp extends StatelessWidget {
         title: "HSCom",
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
-          primarySwatch: Colors.blue,
-          primaryColor: Colors.blue,
+          primarySwatch: Colors.orange,
+          primaryColor: Colors.orange,
           visualDensity: VisualDensity.adaptivePlatformDensity,
         ),
         home: LandingPage(),

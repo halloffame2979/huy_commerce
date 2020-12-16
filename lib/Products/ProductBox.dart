@@ -1,7 +1,9 @@
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:huy_commerce/Model/ProductModel.dart';
-import 'package:huy_commerce/Products/ProductDetail.dart';
 import 'package:intl/intl.dart';
+
+import 'ProductDetail.dart';
 
 var boxShadow = [
   BoxShadow(
@@ -21,17 +23,9 @@ class ProductBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var product = Product(
-        '',
-        'https://png2.cleanpng.com/sh/b25f73decee996f0daa8c494ce4d4d9c/L0KzQYm3WcE4N5Noh5H0aYP2gLBuTf1mdqQyedZyZHH2PcbzlQJiNZN0hAV9LUKwg7BsgftmeqQyedZyZHH2PcbzlQJial46eqtvNnG6Q7a7WMFnQV88T6oEOUKzRoK8U8cyP2U2S6MEM0axgLBu/kisspng-mens-adidas-ultra-boost-2-sneakers-adidas-ultrab-5b9f6a73e481f9.778992061537174131936.png',
-        'Ultraboost',
-        4000000,
-        'Limited');
-    var img = Image.network(
-      product.image,
-      fit: BoxFit.contain,
-      filterQuality: FilterQuality.low,
-    );
+    var storage = FirebaseStorage.instance;
+
+    var img = storage.ref(product.image[0]);
     return GestureDetector(
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute(
@@ -46,7 +40,16 @@ class ProductBox extends StatelessWidget {
         child: Column(
           children: [
             Expanded(
-              child: img,
+              child: FutureBuilder(
+                future: img.getDownloadURL(),
+                builder: (context, AsyncSnapshot<String> imageUrl) {
+                  return imageUrl.connectionState == ConnectionState.done
+                      ? Image.network(imageUrl.data)
+                      : Center(
+                          child: CircularProgressIndicator(),
+                        );
+                },
+              ),
               flex: 5,
             ),
             Expanded(
