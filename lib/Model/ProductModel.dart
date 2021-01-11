@@ -25,5 +25,4 @@ class Product {
     this.type = json['Type'];
   }
 
-  Product(this.id, this.image, this.name, this.price, this.detail);
 }

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:huy_commerce/IntermediateWidget.dart';
 import 'package:huy_commerce/Model/ProductModel.dart';
 
 import 'ProductBox.dart';
@@ -10,10 +11,7 @@ class ProductList extends StatelessWidget {
     return StreamBuilder(
       stream: FirebaseFirestore.instance.collection('Product').snapshots(),
       builder: (context, AsyncSnapshot<QuerySnapshot> product) {
-        if (product.hasError)
-          return Center(
-            child: Text('Error'),
-          );
+        if (product.hasError) return ErrorMessage();
         if (product.connectionState == ConnectionState.active) {
           return GridView.count(
             mainAxisSpacing: 6,
@@ -32,9 +30,7 @@ class ProductList extends StatelessWidget {
             ).toList(),
           );
         }
-        return Center(
-          child: CircularProgressIndicator(),
-        );
+        return Loading();
       },
     );
   }

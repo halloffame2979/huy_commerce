@@ -19,7 +19,7 @@ class ImageSlide extends StatelessWidget {
                 (index) => FutureBuilder(
               future: FirebaseStorage.instance
                   .ref(imageList[index])
-                  .getDownloadURL(),
+                  .getData(),
               builder: (context, image) {
                 if (image.connectionState == ConnectionState.done)
                   return Stack(
@@ -28,12 +28,12 @@ class ImageSlide extends StatelessWidget {
                         onTap: () {
                           showDialog(
                             context: context,
-                            builder: (context) => Center(child: Image.network(image.data)),
+                            builder: (context) => Center(child: Image.memory(image.data)),
                             barrierDismissible: true,
                           );
                         },
                         child: Center(
-                          child: Image.network(image.data),
+                          child: Image.memory(image.data),
                         ),
                       ),
                       Positioned(

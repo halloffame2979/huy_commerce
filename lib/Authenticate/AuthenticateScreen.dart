@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:huy_commerce/Authenticate/AuthenticateComponent.dart';
 import 'package:huy_commerce/Service/UserService.dart';
+import 'package:intl/intl.dart';
 
 enum AuthState { signIn, signUp, forgetPassword }
 
@@ -12,8 +13,8 @@ class AuthenticateScreen extends StatefulWidget {
 class _AuthenticateScreenState extends State<AuthenticateScreen> {
   String email = '', password = '', name = '', gender = 'Nam';
   String emailErrorText,
-      passwordErrorText = 'Không được để trống',
-      nameErrorText = 'Không được để trống';
+      passwordErrorText = 'Required',
+      nameErrorText = 'Required';
   bool emailError = false, passwordError = false, nameError = false;
   bool isLoading = false;
   AuthState authState = AuthState.signIn;
@@ -22,7 +23,7 @@ class _AuthenticateScreenState extends State<AuthenticateScreen> {
     if (email.isEmpty || email == null) {
       setState(() {
         emailError = true;
-        emailErrorText = 'Không được để trống';
+        emailErrorText = 'Required';
       });
     } else if (RegExp(
             r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
@@ -33,14 +34,14 @@ class _AuthenticateScreenState extends State<AuthenticateScreen> {
     } else {
       setState(() {
         emailError = true;
-        emailErrorText = 'Mời nhập đúng dạng email';
+        emailErrorText = 'Fill right email form';
       });
     }
 
     if (password.isEmpty || password == null) {
       setState(() {
         passwordError = true;
-        passwordErrorText = 'Không được để trống';
+        passwordErrorText = 'Required';
       });
     } else {
       setState(() {
@@ -51,7 +52,7 @@ class _AuthenticateScreenState extends State<AuthenticateScreen> {
     if (name.isEmpty || name == null) {
       setState(() {
         nameError = true;
-        nameErrorText = 'Không được để trống';
+        nameErrorText = 'Required';
       });
     } else {
       setState(() {
@@ -66,24 +67,13 @@ class _AuthenticateScreenState extends State<AuthenticateScreen> {
       if (e.code.contains('email'))
         setState(() {
           emailError = true;
-          emailErrorText = 'Email không hợp lệ';
+          emailErrorText = toBeginningOfSentenceCase(e.code.replaceAll('-', ' '));
         });
       if (e.code.contains('password'))
         setState(() {
           passwordError = true;
-          passwordErrorText = e.code;
+          passwordErrorText = toBeginningOfSentenceCase(e.code.replaceAll('-', ' '));
         });
-      if (e.code == 'email-already-in-use') {
-        setState(() {
-          emailError = true;
-          emailErrorText = 'Email đã tồn tại';
-        });
-      } else if (e.code == 'weak-password') {
-        setState(() {
-          passwordError = true;
-          passwordErrorText = 'Mật khẩu yếu';
-        });
-      }
     });
   }
 
@@ -92,12 +82,12 @@ class _AuthenticateScreenState extends State<AuthenticateScreen> {
       if (e.code == 'user-not-found') {
         setState(() {
           emailError = true;
-          emailErrorText = 'Email đã không tồn tại';
+          emailErrorText = toBeginningOfSentenceCase(e.code.replaceAll('-', ' '));
         });
       } else if (e.code == 'wrong-password') {
         setState(() {
           passwordError = true;
-          passwordErrorText = 'Sai mật khẩu';
+          passwordErrorText = toBeginningOfSentenceCase(e.code.replaceAll('-', ' '));
         });
       }
     });
@@ -109,7 +99,7 @@ class _AuthenticateScreenState extends State<AuthenticateScreen> {
 
   Widget signInButton() {
     return Button(
-      button: 'Đăng nhập',
+      button: 'Sign In',
       onPressed: () async {
         validateInput();
         if (!(emailError || passwordError)) {
@@ -127,7 +117,7 @@ class _AuthenticateScreenState extends State<AuthenticateScreen> {
 
   Widget signUpButton(BuildContext context) {
     return Button(
-      button: 'Đăng kí',
+      button: 'Sign Up',
       onPressed: () async {
         validateInput();
         if (!(emailError || passwordError || nameError)) {
@@ -150,7 +140,7 @@ class _AuthenticateScreenState extends State<AuthenticateScreen> {
 
           Scaffold.of(context).showSnackBar(
             SnackBar(
-              content: Text('Đăng ký thành công'),
+              content: Text('You have successfully registered'),
               duration: Duration(seconds: 2),
             ),
           );
@@ -161,7 +151,7 @@ class _AuthenticateScreenState extends State<AuthenticateScreen> {
 
   Widget submitSendNewPasswordButton(BuildContext context) {
     return Button(
-      button: 'Gửi mật khẩu',
+      button: 'Send password',
       onPressed: () async {
         validateInput();
         if (!(emailError)) {
@@ -179,7 +169,7 @@ class _AuthenticateScreenState extends State<AuthenticateScreen> {
           });
           Scaffold.of(context).showSnackBar(
             SnackBar(
-              content: Text('Đã gửi thông tin đến email của bạn'),
+              content: Text('Sent information to your email'),
               duration: Duration(seconds: 2),
             ),
           );
@@ -192,7 +182,7 @@ class _AuthenticateScreenState extends State<AuthenticateScreen> {
     return ListTile(
       dense: true,
       title: Text(
-        'Quên mật khẩu',
+        'Forget password',
         style: TextStyle(
           color: Colors.blue,
           fontWeight: FontWeight.bold,
@@ -213,7 +203,7 @@ class _AuthenticateScreenState extends State<AuthenticateScreen> {
     return ListTile(
       dense: true,
       title: Text(
-        name ?? 'Đã có tài khoản',
+        name ?? 'Had an account?',
         style: TextStyle(
           color: Colors.blue,
           fontWeight: FontWeight.bold,
@@ -239,14 +229,14 @@ class _AuthenticateScreenState extends State<AuthenticateScreen> {
           setState(() {
             authState = AuthState.signUp;
             name = '';
-            gender = 'Nam';
+            gender = 'Male';
             emailError = false;
             passwordError = false;
             nameError = false;
           });
         },
         child: Text(
-          'Tạo tài khoản mới',
+          'Create new account',
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w900,
@@ -352,8 +342,8 @@ class _AuthenticateScreenState extends State<AuthenticateScreen> {
                                         ),
                                         visible: nameError,
                                       ),
-                                      genderSelector('Nam'),
-                                      genderSelector('Nữ'),
+                                      genderSelector('Male'),
+                                      genderSelector('Female'),
                                     ],
                                   ),
                                 ),
@@ -384,11 +374,22 @@ class _AuthenticateScreenState extends State<AuthenticateScreen> {
                                   : Column(
                                       children: [
                                         submitSendNewPasswordButton(context),
-                                        hadAccount(name: 'Quay lại đăng nhập'),
+                                        hadAccount(name: 'Go to Log In'),
                                       ],
                                     ),
-                          FlatButton(
-                              onPressed: () => print(gender), child: Text('a')),
+                          // FlatButton(
+                          //     onPressed: (){
+                          //       FirebaseFirestore.instance.collection('Product').add({
+                          //         'Brand':'',
+                          //         'Detail':'',
+                          //         'Discount':0,
+                          //         'Image':['',''],
+                          //         'Name':'',
+                          //         'Price':1,
+                          //         'Quantity':1000,
+                          //         'Type':'',
+                          //       });
+                          //     }, child: Text('a')),
                         ],
                       ),
               ),

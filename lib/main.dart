@@ -29,6 +29,7 @@ class MyApp extends StatelessWidget {
           primarySwatch: Colors.orange,
           primaryColor: Colors.orange,
           visualDensity: VisualDensity.adaptivePlatformDensity,
+          accentColor: Colors.orange,
         ),
         home: LandingPage(),
          //TestWidget(),

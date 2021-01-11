@@ -156,7 +156,7 @@ class _UserInformationState extends State<UserInformation> {
                     ),
                   ),
                   _divider10,
-                  text('Họ và tên'),
+                  text('Full name'),
                   Container(
                     alignment: Alignment.center,
                     child: UserName(
@@ -242,19 +242,19 @@ class _UserInformationState extends State<UserInformation> {
                           color: Colors.black,
                         ),
                         title: Text(
-                          'Đổi mật khẩu',
+                          'Change password',
                           style: TextStyle(
                             fontSize: 20,
                           ),
                         ),
                         trailing: Icon(Icons.arrow_forward_ios_outlined),
                         onTap: () {
-                          // Navigator.of(context).push(
-                          //   MaterialPageRoute(
-                          //     builder: (context) => Scaffold(),
-                          //   ),
-                          // );
-                          print(_user.uid);
+                          Scaffold.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Temporarily not available'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
                         },
                       ),
                     ),
@@ -265,7 +265,7 @@ class _UserInformationState extends State<UserInformation> {
                     highlightColor: Theme.of(context).primaryColor,
                     onTap: () {
                       submitYesOrNo(context, function: () {
-                        Navigator.of(context).pop();
+                        Navigator.of(context).popUntil((route) => route.isFirst);
                         FirebaseAuth.instance.signOut();
                       });
                     },
@@ -273,7 +273,7 @@ class _UserInformationState extends State<UserInformation> {
                       alignment: Alignment.center,
                       height: 57,
                       child: Text(
-                        'Đăng xuất',
+                        'Logout',
                         style: TextStyle(fontSize: 14),
                       ),
                     ),
@@ -305,7 +305,7 @@ class GendersSelector extends StatefulWidget {
 class _GendersSelectorState extends State<GendersSelector> {
   String gender;
 
-  List<String> list = ['Nam', 'Nữ'];
+  List<String> list = ['Male', 'Female'];
 
   @override
   void initState() {
@@ -337,7 +337,7 @@ class _GendersSelectorState extends State<GendersSelector> {
                   .update({'Gender': val});
               Scaffold.of(widget.context).showSnackBar(
                 SnackBar(
-                  content: Text('Đã lưu giới tính của bạn'),
+                  content: Text('Saved your information'),
                   duration: Duration(seconds: 2),
                 ),
               );

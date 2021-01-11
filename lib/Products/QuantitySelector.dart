@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:huy_commerce/Model/ProductModel.dart';
+import 'package:huy_commerce/Order/OrderingList.dart';
 
 class QuantitySelector extends StatefulWidget {
   final String name;
@@ -16,16 +18,12 @@ class QuantitySelector extends StatefulWidget {
 
 class _QuantitySelectorState extends State<QuantitySelector> {
   int quantity;
-  var controller = TextEditingController();
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     quantity = 1;
-    controller.text = quantity.toString();
-    controller.selection = TextSelection.fromPosition(
-        TextPosition(offset: controller.text.length));
   }
 
   @override
@@ -51,69 +49,10 @@ class _QuantitySelectorState extends State<QuantitySelector> {
             height: 10,
             color: Colors.transparent,
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                child: IconButton(
-                    disabledColor: Colors.grey,
-                    icon: Icon(Icons.remove),
-                    onPressed: quantity <= 1
-                        ? null
-                        : () {
-                            setState(() {
-                              quantity -= 1;
-                              controller.text = quantity.toString();
-                              controller.selection = TextSelection.fromPosition(
-                                  TextPosition(offset: controller.text.length));
-                            });
-                          }),
-              ),
-              Container(
-                height: 20,
-                width: 50,
-                child: TextField(
-                  controller: controller,
-                  textAlign: TextAlign.center,
-                  keyboardType: TextInputType.number,
-                  maxLength: 2,
-                  decoration: InputDecoration(
-                    counterText: '',
-                  ),
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    FilteringTextInputFormatter.deny(RegExp(r'^0+'))
-                  ],
-                  onChanged: (val) {
-                    if (val.isEmpty) {
-                      controller.text = '0';
-                      controller.selection = TextSelection.fromPosition(
-                          TextPosition(offset: controller.text.length));
-                      setState(() {
-                        quantity = 0;
-                      });
-                      return;
-                    }
-
-                    setState(() {
-                      quantity = int.parse(val);
-                    });
-                  },
-                ),
-              ),
-              Container(
-                child: IconButton(
-                    icon: Icon(Icons.add),
-                    onPressed: () {
-                      setState(() {
-                        quantity += 1;
-                        controller.text = quantity.toString();
-                        controller.selection = TextSelection.fromPosition(
-                            TextPosition(offset: controller.text.length));
-                      });
-                    }),
-              ),
-            ],
+          QuantityChanger(
+            function: (num) {
+              quantity = num;
+            },
           ),
           FlatButton(
             disabledColor: Colors.grey,
@@ -122,32 +61,174 @@ class _QuantitySelectorState extends State<QuantitySelector> {
             onPressed: quantity < 1
                 ? null
                 : () async {
-                    var _cloud = FirebaseFirestore.instance.collection('Order');
-                    var _user = FirebaseAuth.instance.currentUser.uid;
-                    var _orders = await (_cloud
-                        .where('User', isEqualTo: _user)
+                    var _cloudOrder =
+                        FirebaseFirestore.instance.collection('Order');
+                    var _userId = FirebaseAuth.instance.currentUser.uid;
+                    var _orders = await (_cloudOrder
+                        .where('User', isEqualTo: _userId)
                         .where('Status', isEqualTo: 'Ordering')
                         .get());
-                    var _userOrder = _orders.docs.first;
-                    var docID = _userOrder.id;
-                    List<Map> a = _userOrder.data()['Product'].cast<Map>();
-                    int index = a
-                        .indexWhere((e) => e['ProductID'] == widget.product.id);
-                    if (index >= 0) {
-                      a[index]['Quantity'] += quantity;
-                      a[index]['Checked'] = true;
+                    if (_orders.docs.length > 0) {
+                      var _userOrder = _orders.docs.first;
+                      var docID = _userOrder.id;
+                      List<Map> productList =
+                          _userOrder.data()['Product'].cast<Map>();
+                      int index = productList.indexWhere(
+                          (e) => e['ProductID'] == widget.product.id);
+                      if (index >= 0) {
+                        productList[index]['Quantity'] += quantity;
+                        productList[index]['Price'] = widget.product.price;
+                        productList[index]['Checked'] = true;
+                      } else {
+                        productList.add({
+                          'Checked': true,
+                          'ProductID': widget.product.id,
+                          'Quantity': quantity,
+                          'Price': widget.product.price,
+                        });
+                      }
+                      _cloudOrder.doc(docID).set({
+                        'Product': productList,
+                      }, SetOptions(merge: true));
                     } else {
-                      a.add({
-                        'Checked': true,
-                        'ProductID': widget.product.id,
-                        'Quantity': quantity
+                      _cloudOrder.add({
+                        'User': _userId,
+                        'Status': 'Ordering',
+                        'Product': [
+                          {
+                            'Checked': true,
+                            'ProductID': widget.product.id,
+                            'Quantity': quantity,
+                            'Price': widget.product.price,
+                          },
+                        ],
+                        // 'Date': Timestamp.fromDate(DateTime.now()),
+                      }).then((value) {
+                        FirebaseFirestore.instance
+                            .collection('User')
+                            .doc(_userId)
+                            .set({
+                          'Order': value.id,
+                        }, SetOptions(merge: true));
                       });
                     }
-                    _cloud
-                        .doc(docID)
-                        .set({'Product': a}, SetOptions(merge: true));
+                    widget.name == 'Add to Cart'
+                        ? Navigator.of(context).pop()
+                        : Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                              builder: (context) => OrderingList(),
+                            ),
+                          );
                   },
           )
+        ],
+      ),
+    );
+  }
+}
+
+class QuantityChanger extends StatefulWidget {
+  final Function(int) function;
+  final int initQuantity;
+
+  const QuantityChanger({Key key, this.function, this.initQuantity})
+      : super(key: key);
+
+  @override
+  _QuantityChangerState createState() => _QuantityChangerState();
+}
+
+class _QuantityChangerState extends State<QuantityChanger> {
+  int quantity;
+  var controller = TextEditingController();
+
+  void initState() {
+    super.initState();
+    quantity = widget.initQuantity ?? 1;
+    controller.text = quantity.toString();
+    controller.selection = TextSelection.fromPosition(
+        TextPosition(offset: controller.text.length));
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    controller.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding:
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      alignment: Alignment.center,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            child: IconButton(
+                disabledColor: Colors.grey,
+                icon: Icon(Icons.remove),
+                onPressed: quantity <= 1
+                    ? null
+                    : () {
+                        setState(() {
+                          quantity -= 1;
+                          controller.text = quantity.toString();
+                          controller.selection = TextSelection.fromPosition(
+                              TextPosition(offset: controller.text.length));
+                        });
+                        widget.function(quantity);
+                      }),
+          ),
+          Container(
+            height: 20,
+            width: 50,
+            child: TextField(
+              controller: controller,
+              textAlign: TextAlign.center,
+              keyboardType: TextInputType.number,
+              maxLength: 2,
+              decoration: InputDecoration(
+                counterText: '',
+              ),
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                FilteringTextInputFormatter.deny(RegExp(r'^0+'))
+              ],
+              onChanged: (val) {
+                print(val);
+                if (val.isEmpty) {
+                  controller.text = '0';
+                  controller.selection = TextSelection.fromPosition(
+                      TextPosition(offset: controller.text.length));
+                  setState(() {
+                    quantity = 0;
+                  });
+                  widget.function(quantity);
+                  return;
+                }
+
+                setState(() {
+                  quantity = int.parse(val);
+                });
+                widget.function(quantity);
+              },
+            ),
+          ),
+          Container(
+            child: IconButton(
+                icon: Icon(Icons.add),
+                onPressed: () {
+                  setState(() {
+                    quantity += 1;
+                    controller.text = quantity.toString();
+                    controller.selection = TextSelection.fromPosition(
+                        TextPosition(offset: controller.text.length));
+                  });
+                  widget.function(quantity);
+                }),
+          ),
         ],
       ),
     );

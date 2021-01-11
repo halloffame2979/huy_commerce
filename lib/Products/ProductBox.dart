@@ -41,10 +41,10 @@ class ProductBox extends StatelessWidget {
           children: [
             Expanded(
               child: FutureBuilder(
-                future: img.getDownloadURL(),
-                builder: (context, AsyncSnapshot<String> imageUrl) {
+                future: img.getData(),
+                builder: (context, AsyncSnapshot imageUrl) {
                   return imageUrl.connectionState == ConnectionState.done
-                      ? Image.network(imageUrl.data)
+                      ? Image.memory(imageUrl.data)
                       : Center(
                           child: CircularProgressIndicator(),
                         );
@@ -55,9 +55,12 @@ class ProductBox extends StatelessWidget {
             Expanded(
               child: Container(
                 padding: EdgeInsets.symmetric(horizontal: 7),
+                alignment: Alignment.centerLeft,
                 child: Text(
                   product.name,
                   textAlign: TextAlign.left,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
                   style: TextStyle(
                     fontSize: 17,
                   ),
@@ -69,7 +72,7 @@ class ProductBox extends StatelessWidget {
               child: Container(
                 alignment: Alignment.center,
                 child: Text(
-                  'Giá: ' +
+                  'Price: ' +
                       NumberFormat.currency(locale: 'vi').format(product.price),
                   style: TextStyle(
                     fontSize: 15,

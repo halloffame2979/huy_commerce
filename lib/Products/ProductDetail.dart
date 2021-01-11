@@ -1,7 +1,8 @@
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:huy_commerce/IntermediateWidget.dart';
 import 'package:huy_commerce/Model/ProductModel.dart';
+import 'package:huy_commerce/Order/OrderingList.dart';
 import 'package:intl/intl.dart';
 
 import 'ImageSlide.dart';
@@ -34,11 +35,13 @@ class ProductDetail extends StatelessWidget {
                   onPressed: product.quantity > 0
                       ? () {
                           showModalBottomSheet(
-                              context: context,
-                              builder: (context) => QuantitySelector(
-                                name: 'Add to Cart',
-                                product: product,
-                              ));
+                            context: context,
+                            builder: (context) => QuantitySelector(
+                              name: 'Add to Cart',
+                              product: product,
+                            ),
+                            //builder: (context) => QuantityChanger()
+                          );
                         }
                       : null,
                   child: Row(
@@ -61,14 +64,16 @@ class ProductDetail extends StatelessWidget {
                 child: FlatButton(
                   disabledColor: Colors.grey,
                   height: 60,
-                  onPressed: product.quantity > 0 ? () {
-                    showModalBottomSheet(
-                        context: context,
-                        builder: (context) => QuantitySelector(
-                          name: 'Buy Now',
-                          product: product,
-                        ));
-                  } : null,
+                  onPressed: product.quantity > 0
+                      ? () {
+                          showModalBottomSheet(
+                              context: context,
+                              builder: (context) => QuantitySelector(
+                                    name: 'Buy Now',
+                                    product: product,
+                                  ));
+                        }
+                      : null,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -94,7 +99,7 @@ class ProductDetail extends StatelessWidget {
                 style: TextStyle(color: Colors.black),
               ),
               actions: [
-                IconButton(icon: Icon(Icons.shopping_cart), onPressed: () {}),
+                ProductInCart(isBlack: true,),
               ],
               iconTheme: IconThemeData(
                 color: Theme.of(context).primaryColor,
@@ -214,4 +219,3 @@ class ProductDetail extends StatelessWidget {
     );
   }
 }
-
