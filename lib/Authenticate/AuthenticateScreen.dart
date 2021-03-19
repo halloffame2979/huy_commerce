@@ -67,12 +67,14 @@ class _AuthenticateScreenState extends State<AuthenticateScreen> {
       if (e.code.contains('email'))
         setState(() {
           emailError = true;
-          emailErrorText = toBeginningOfSentenceCase(e.code.replaceAll('-', ' '));
+          emailErrorText =
+              toBeginningOfSentenceCase(e.code.replaceAll('-', ' '));
         });
       if (e.code.contains('password'))
         setState(() {
           passwordError = true;
-          passwordErrorText = toBeginningOfSentenceCase(e.code.replaceAll('-', ' '));
+          passwordErrorText =
+              toBeginningOfSentenceCase(e.code.replaceAll('-', ' '));
         });
     });
   }
@@ -82,12 +84,14 @@ class _AuthenticateScreenState extends State<AuthenticateScreen> {
       if (e.code == 'user-not-found') {
         setState(() {
           emailError = true;
-          emailErrorText = toBeginningOfSentenceCase(e.code.replaceAll('-', ' '));
+          emailErrorText =
+              toBeginningOfSentenceCase(e.code.replaceAll('-', ' '));
         });
       } else if (e.code == 'wrong-password') {
         setState(() {
           passwordError = true;
-          passwordErrorText = toBeginningOfSentenceCase(e.code.replaceAll('-', ' '));
+          passwordErrorText =
+              toBeginningOfSentenceCase(e.code.replaceAll('-', ' '));
         });
       }
     });
@@ -138,7 +142,7 @@ class _AuthenticateScreenState extends State<AuthenticateScreen> {
             nameError = false;
           });
 
-          Scaffold.of(context).showSnackBar(
+          ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('You have successfully registered'),
               duration: Duration(seconds: 2),
@@ -167,7 +171,7 @@ class _AuthenticateScreenState extends State<AuthenticateScreen> {
             passwordError = false;
             nameError = false;
           });
-          Scaffold.of(context).showSnackBar(
+          ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Sent information to your email'),
               duration: Duration(seconds: 2),
@@ -222,9 +226,11 @@ class _AuthenticateScreenState extends State<AuthenticateScreen> {
 
   Widget createNewAccountButton() {
     return Container(
-      child: FlatButton(
-        color: Color.fromRGBO(54, 164, 32, 1),
-        height: 70,
+      height: 70,
+      child: TextButton(
+        style: TextButton.styleFrom(
+          primary: Color.fromRGBO(54, 164, 32, 1),
+        ),
         onPressed: () {
           setState(() {
             authState = AuthState.signUp;
@@ -409,16 +415,17 @@ class Button extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FlatButton(
-      height: 50,
-      minWidth: 300,
-      color: Colors.blue[700],
+    return TextButton(
+      style: TextButton.styleFrom(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+        primary: Colors.blue[700],
+        minimumSize: Size(300, 50),
+      ),
       child: Text(
         button,
         style: TextStyle(color: Colors.white),
       ),
       onPressed: onPressed,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
     );
   }
 }

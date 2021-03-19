@@ -1,12 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:huy_commerce/Model/OrderModel.dart';
+import 'package:huy_commerce/Model/CartModel.dart';
 import 'package:huy_commerce/Model/ProductInOrderModel.dart';
 import 'package:huy_commerce/Order/FinishedOrder.dart';
 import 'package:intl/intl.dart';
 
 class OrderDetail extends StatelessWidget {
-  final Order order;
+  final CartModel order;
 
   const OrderDetail({Key key, this.order}) : super(key: key);
 
@@ -31,7 +31,7 @@ class OrderDetail extends StatelessWidget {
                     children: List.generate(
                         order.products.length,
                         (index) => FinishedOrder(
-                              product: ProductInOrder.fromJson(
+                              product: ProductInOrderModel.fromJson(
                                 order.products[index],
                               ),
                               status: order.status,
@@ -73,7 +73,7 @@ class OrderDetail extends StatelessWidget {
                           ),
                         ),
                         width: 100,
-                        child: FlatButton(
+                        child: MaterialButton(
                             onPressed: () {
                               FirebaseFirestore.instance
                                   .collection('Order')
@@ -98,7 +98,7 @@ class OrderDetail extends StatelessWidget {
                           ),
                         ),
                         width: 100,
-                        child: FlatButton(
+                        child: MaterialButton(
                             onPressed: () {
                               FirebaseFirestore.instance
                                   .collection('Order')

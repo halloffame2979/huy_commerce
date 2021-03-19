@@ -1,12 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:huy_commerce/Model/OrderModel.dart';
+import 'package:huy_commerce/IntermediateWidget.dart';
 import 'package:huy_commerce/Model/ProductInOrderModel.dart';
 import 'package:huy_commerce/Order/FinishedOrder.dart';
-
-import '../IntermediateWidget.dart';
-import 'OrderDetail.dart';
+import 'package:huy_commerce/Order/NoOrder.dart';
 
 // 'Ordering'
 
@@ -17,18 +17,50 @@ class OrderHistory extends StatefulWidget {
 
 class _OrderHistoryState extends State<OrderHistory> {
   int selected;
+  Future<List> fetch;
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     selected = 0;
+    fetch = _fetchData(FirebaseAuth.instance.currentUser.uid);
+  }
+
+  Future<List> _fetchData(String userId) async {
+    var fireStore = FirebaseFirestore.instance;
+    List<Map> inProgressProducts = (await fireStore
+            .collection('InProgress')
+            .where('User', isEqualTo: userId)
+            .orderBy('OrderAt', descending: true)
+            .get())
+        .docs
+        .map((product) {
+      var map = product.data();
+      map['ID'] = product.id;
+      return map;
+    }).toList();
+
+    if (inProgressProducts.isEmpty) return [];
+    var products = [];
+    for (var i in inProgressProducts) {
+      var productInfo =
+          (await fireStore.collection('Product').doc(i['ProductID']).get());
+      var url = (await FirebaseStorage.instance
+          .ref(productInfo['Image'][0])
+          .getDownloadURL());
+      var name = productInfo['Name'];
+      var price = productInfo['Price'];
+      var brand = productInfo['Brand'];
+      var map = {'Image': url, 'Name': name, 'Price': price, 'Brand': brand}
+        ..addAll(i);
+      products.add(map);
+    }
+    return products;
   }
 
   @override
   Widget build(BuildContext context) {
     List<String> status = ['All', 'Waiting', 'Shipping', 'Cancel', 'Received'];
-    var userId = FirebaseAuth.instance.currentUser.uid;
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
@@ -36,31 +68,37 @@ class _OrderHistoryState extends State<OrderHistory> {
         ),
         body: Column(
           children: [
-            Row(
-              children: List.generate(
-                5,
-                (index) => GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      selected = index;
-                    });
-                  },
-                  child: Container(
-                    margin: EdgeInsets.all(12),
-                    decoration: selected == index
-                        ? BoxDecoration(
-                            border: Border(
-                              bottom: BorderSide(
-                                  width: 3,
-                                  color: Theme.of(context).primaryColor),
-                            ),
-                          )
-                        : null,
-                    child: Text(
-                      status[index],
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: selected == index ? FontWeight.bold : null,
+            Container(
+              height: 50,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: List.generate(
+                  5,
+                  (index) => GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        selected = index;
+                      });
+                    },
+                    child: Container(
+                      margin: EdgeInsets.all(12),
+                      padding: EdgeInsets.symmetric(horizontal: 10),
+                      decoration: selected == index
+                          ? BoxDecoration(
+                              border: Border(
+                                bottom: BorderSide(
+                                    width: 3,
+                                    color: Theme.of(context).primaryColor),
+                              ),
+                            )
+                          : null,
+                      child: Text(
+                        status[index],
+                        style: TextStyle(
+                          fontSize: selected == index ? 18 : 16,
+                          fontWeight:
+                              selected == index ? FontWeight.bold : null,
+                        ),
                       ),
                     ),
                   ),
@@ -72,85 +110,33 @@ class _OrderHistoryState extends State<OrderHistory> {
               thickness: 3,
             ),
             Expanded(
-              child: StreamBuilder(
-                  stream: FirebaseFirestore.instance
-                      .collection('Order')
-                      .where('User', isEqualTo: userId)
-                      .snapshots(),
-                  builder: (context, AsyncSnapshot<QuerySnapshot> orderList) {
-                    if (orderList.hasError) return ErrorMessage();
-
-                    if (orderList.connectionState == ConnectionState.active) {
-                      var orders = orderList.data.docs
-                          .where((element) =>
-                              element.data()['Status'] != 'Ordering')
-                          .toList()
-                            ..sort((a, b) => a
-                                .data()['OrderDate']
-                                .compareTo(b.data()['OrderDate']));
-                      orders = orders.reversed.toList();
-
-                      if (selected != 0) {
-                        orders = orders
-                            .where((element) =>
-                                element.data()['Status'] == status[selected])
-                            .toList();
-                      }
-                      if (orders.length == 0) {
-                        return Center(
-                          child: Text(
-                            'There are no orders placed yet',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
-                            ),
-                          ),
-                        );
-                      } else {
-                        return ListView(
-                          children: List.generate(orders.length, (index) {
-                            var order = Order.fromJson(orders[index].data()
-                              ..addAll({'ID': orders[index].id}));
-                            return Column(
-                              children: List.generate(order.products.length,
-                                  (index) {
-                                var product = ProductInOrder.fromJson(
-                                    order.products[index]);
-                                return FinishedOrder(
-                                  product: product,
-                                  status: order.status,
-                                );
-                              })
-                                ..add(
-                                  Container(
-                                    width:
-                                        MediaQuery.of(context).size.width / 0.6,
-                                    child: ListTile(
-                                      dense: true,
-                                      onTap: () {
-                                        Navigator.of(context).push(
-                                            MaterialPageRoute(
-                                                builder: (context) =>
-                                                    OrderDetail(
-                                                      order: order,
-                                                    )));
-                                      },
-                                      leading: Icon(Icons.notes),
-                                      title: Text('Order detail'),
-                                      trailing: Icon(Icons.navigate_next),
-                                    ),
-                                  ),
-                                )
-                                ..add(Divider(
-                                  thickness: 6,
-                                )),
-                            );
-                          }),
-                        );
-                      }
+              child: FutureBuilder(
+                future: fetch,
+                builder: (context, AsyncSnapshot<List> snap) {
+                  if (snap.hasError) return ErrorMessage();
+                  if (snap.connectionState == ConnectionState.done) {
+                    if (snap.data.isEmpty) {
+                      return NoOrder();
                     }
-                    return Container();
-                  }),
+                    var products = snap.data.where((element) {
+                      return status[selected] == 'All'
+                          ? true
+                          : element['Status'] == status[selected];
+                    }).toList();
+                    if (products.isEmpty) return NoOrder();
+                    return ListView(
+                      children: List.generate(products.length, (index) {
+                        var product = products[index];
+                        return FinishedOrder(
+                          product: ProductInOrderModel.fromJson(product),
+                          status: product['Status'],
+                        );
+                      }),
+                    );
+                  }
+                  return Loading();
+                },
+              ),
             ),
           ],
         ),

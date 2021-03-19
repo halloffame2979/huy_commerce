@@ -20,7 +20,7 @@ class _TestWidgetState extends State<TestWidget> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        floatingActionButton: FlatButton(
+        floatingActionButton: MaterialButton(
           onPressed: () {
             FirebaseFirestore.instance
                 .collection('Test')
@@ -52,7 +52,7 @@ class _TestWidgetState extends State<TestWidget> {
                     if(a.length ==0) return Text('NULL');
                     return Column(
                       children: [
-                        FlatButton(
+                        MaterialButton(
                             onPressed: () {
                               a.forEach((element) {
                                 print(element);

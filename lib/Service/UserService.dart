@@ -23,6 +23,7 @@ class UserService {
       _cloudDb.collection('User').doc(_auth.currentUser.uid).set({
         'Gender': gender,
         'Birth': Timestamp.fromDate(DateTime(1970, 1, 1)),
+        'Order': ''
       });
       await _auth.signOut();
     } on FirebaseAuthException catch (e) {
@@ -59,8 +60,9 @@ class UserService {
 
   static Future changePassword(String currentPassword, String newPassword,
       {Function(FirebaseException exception) errorHandle}) async {
-    await reauthenticateUser(currentPassword);
+
     try {
+      await reauthenticateUser(currentPassword);
       await _user.updatePassword(newPassword);
     } on FirebaseAuthException catch (e) {
       errorHandle(e);

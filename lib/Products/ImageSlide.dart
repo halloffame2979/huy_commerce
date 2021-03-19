@@ -1,67 +1,79 @@
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 
-class ImageSlide extends StatelessWidget {
+class ImageSlide extends StatefulWidget {
   final List<String> imageList;
 
   const ImageSlide({Key key, this.imageList}) : super(key: key);
 
   @override
+  _ImageSlideState createState() => _ImageSlideState();
+}
+
+class _ImageSlideState extends State<ImageSlide> {
+  int page = 0;
+
+  @override
   Widget build(BuildContext context) {
     return Container(
       height: MediaQuery.of(context).size.width / 3 * 3.5,
-      child: Container(
-        color: Colors.black,
-        child: PageView(
-          allowImplicitScrolling: true,
-          children: List.generate(
-            imageList.length,
-                (index) => FutureBuilder(
-              future: FirebaseStorage.instance
-                  .ref(imageList[index])
-                  .getData(),
-              builder: (context, image) {
-                if (image.connectionState == ConnectionState.done)
-                  return Stack(
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          showDialog(
-                            context: context,
-                            builder: (context) => Center(child: Image.memory(image.data)),
-                            barrierDismissible: true,
-                          );
-                        },
-                        child: Center(
-                          child: Image.memory(image.data),
-                        ),
-                      ),
-                      Positioned(
-                        child: Container(
-                          padding: EdgeInsets.all(2),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.withOpacity(0.5),
-                            borderRadius: BorderRadius.horizontal(
-                              left: Radius.circular(5),
-                              right: Radius.circular(5),
+      child: Stack(
+        children: [
+          Container(
+            color: Colors.black,
+            child: PageView(
+              onPageChanged: (num) {
+                setState(() {
+                  page = num;
+                });
+              },
+              allowImplicitScrolling: true,
+              children: List.generate(
+                widget.imageList.length,
+                (index) => GestureDetector(
+                  onTap: () {
+                    showDialog(
+                      barrierColor: Colors.black87,
+                      context: context,
+                      builder: (context) => Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Container(
+                            // color: Colors.red,
+                            alignment: Alignment.topRight,
+                            child: MaterialButton(
+                              minWidth: 10,
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: Icon(
+                                Icons.cancel_outlined,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
-                          child: Text(
-                            '${index + 1}/${imageList.length}',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                        bottom: 5,
-                        right: 5,
+                          Image.network(widget.imageList[index]),
+                        ],
                       ),
-                    ],
-                  );
-                else
-                  return Center();
-              },
+                      barrierDismissible: true,
+                    );
+                  },
+                  child: Center(
+                    child: Image.network(widget.imageList[index]),
+                  ),
+                ),
+              ),
             ),
           ),
-        ),
+          Container(
+            margin: EdgeInsets.all(5),
+            padding: EdgeInsets.all(3),
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(5),
+                color: Colors.black.withOpacity(0.7)),
+            child: Text(
+              '${page + 1}/${widget.imageList.length}',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
       ),
     );
   }

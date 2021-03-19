@@ -163,21 +163,33 @@ class _UserNameState extends State<UserName> {
     );
     return Container(
       width: 300,
-      child: TextField(
-        style: TextStyle(
-          fontSize: 20,
-        ),
-        controller: textController,
-        decoration: InputDecoration(
-          labelText: widget.hasLabelText?'Họ và tên':null,
-          border: _border,
-          focusedBorder: _border,
-          enabledBorder: _border,
-          disabledBorder: _border,
-          hintText: 'Họ và tên',
-        ),
-        keyboardType: TextInputType.text,
-        onChanged: (text) => widget.function(text),
+      height: 60,
+      // color: Colors.red,
+      child: Stack(
+        children: [
+          Container(
+            // color: Colors.red,
+            alignment: Alignment.centerRight,
+            margin: EdgeInsets.only(right: 10),
+            child: Icon(Icons.edit),
+          ),
+          TextField(
+            style: TextStyle(
+              fontSize: 20,
+            ),
+            controller: textController,
+            decoration: InputDecoration(
+              labelText: widget.hasLabelText?'Họ và tên':null,
+              border: _border,
+              focusedBorder: _border,
+              enabledBorder: _border,
+              disabledBorder: _border,
+              hintText: 'Họ và tên',
+            ),
+            keyboardType: TextInputType.text,
+            onChanged: (text) => widget.function(text),
+          ),
+        ],
       ),
     );
   }

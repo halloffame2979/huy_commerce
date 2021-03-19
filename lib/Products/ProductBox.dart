@@ -1,6 +1,5 @@
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:huy_commerce/Model/ProductModel.dart';
+import 'package:huy_commerce/Model/AvailableProductModel.dart';
 import 'package:intl/intl.dart';
 
 import 'ProductDetail.dart';
@@ -17,39 +16,28 @@ var boxShadow = [
 ];
 
 class ProductBox extends StatelessWidget {
-  final Product product;
+  final AvailableProductModel product;
 
   const ProductBox({Key key, this.product}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    var storage = FirebaseStorage.instance;
-
-    var img = storage.ref(product.image[0]);
     return GestureDetector(
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (context) => ProductDetail(product: product),
+          builder: (context) => ProductDetail(productID: product.id),
         ),
       ),
       child: Container(
         decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
           color: Colors.white,
           boxShadow: boxShadow,
         ),
         child: Column(
           children: [
             Expanded(
-              child: FutureBuilder(
-                future: img.getData(),
-                builder: (context, AsyncSnapshot imageUrl) {
-                  return imageUrl.connectionState == ConnectionState.done
-                      ? Image.memory(imageUrl.data)
-                      : Center(
-                          child: CircularProgressIndicator(),
-                        );
-                },
-              ),
+              child: Image.network(product.image[0]),
               flex: 5,
             ),
             Expanded(

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:huy_commerce/LandingPage.dart';
 import 'package:huy_commerce/Model/UserModel.dart';
-import 'package:huy_commerce/TestWidget.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
@@ -30,9 +29,11 @@ class MyApp extends StatelessWidget {
           primaryColor: Colors.orange,
           visualDensity: VisualDensity.adaptivePlatformDensity,
           accentColor: Colors.orange,
+          disabledColor: Colors.grey,
         ),
         home: LandingPage(),
          //TestWidget(),
+        // home: Container(),
       ),
     );
   }

@@ -85,11 +85,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: ListView(
                       shrinkWrap: true,
                       children: [
-                        UserEmail(email: email,function: (String text) {
-                          setState(() {
-                            email = text;
-                          });
-                        }),
+                        UserEmail(
+                            email: email,
+                            function: (String text) {
+                              setState(() {
+                                email = text;
+                              });
+                            }),
                         divider10,
                         Visibility(
                           child: Text(
@@ -99,11 +101,13 @@ class _LoginScreenState extends State<LoginScreen> {
                           visible: emailError,
                         ),
                         divider30,
-                        UserPassword(password:password,function: (text) {
-                          setState(() {
-                            password = text;
-                          });
-                        }),
+                        UserPassword(
+                            password: password,
+                            function: (text) {
+                              setState(() {
+                                password = text;
+                              });
+                            }),
                         divider10,
                         Visibility(
                           child: Text(
@@ -114,10 +118,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         divider30,
                         divider10,
-                        FlatButton(
-                          height: 50,
-                          minWidth: 300,
-                          color: Colors.blue[700],
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            primary: Colors.blue[700],
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(5)),
+                            minimumSize: Size(300, 50),
+                          ),
                           child: Text(
                             'Đăng nhập',
                             style: TextStyle(color: Colors.white),
@@ -128,17 +135,19 @@ class _LoginScreenState extends State<LoginScreen> {
                               await validateOnServer();
                             }
                           },
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(5)),
                         ),
                         Divider(
                           height: 40,
                           thickness: 2,
                         ),
                         Container(
-                          child: FlatButton(
-                            color: Color.fromRGBO(54, 164, 32, 1),
-                            height: 70,
+                          child: TextButton(
+                            style: TextButton.styleFrom(
+                              primary: Color.fromRGBO(54, 164, 32, 1),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(5)),
+                              minimumSize: Size(300, 70),
+                            ),
                             onPressed: () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(

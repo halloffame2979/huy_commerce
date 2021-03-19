@@ -3,12 +3,14 @@ import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:huy_commerce/Authenticate/AuthenticateComponent.dart';
+import 'package:huy_commerce/Buttons/ChangePasswordButton.dart';
 import 'package:huy_commerce/IntermediateWidget.dart';
 import 'package:huy_commerce/Service/UserService.dart';
-import 'package:intl/intl.dart';
+import 'package:huy_commerce/UserInformation/UserBirthday.dart';
+
+import 'GenderSelector.dart';
 
 class UserInformation extends StatefulWidget {
   @override
@@ -42,7 +44,7 @@ class _UserInformationState extends State<UserInformation> {
       changedPhoto = false;
       changedName = false;
     });
-    Scaffold.of(context).showSnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Đã lưu thông tin của bạn'),
         duration: Duration(seconds: 1),
@@ -69,7 +71,7 @@ class _UserInformationState extends State<UserInformation> {
             title: Text('Sửa hồ sơ'),
             actions: [
               Builder(
-                builder: (context) => FlatButton(
+                builder: (context) => MaterialButton(
                   child: Text(
                     'Lưu',
                     style: TextStyle(
@@ -177,44 +179,20 @@ class _UserInformationState extends State<UserInformation> {
                     ),
                   ),
                   _divider30,
-                  StreamBuilder(
-                      stream: _cloudDb
-                          .collection('User')
-                          .doc(_user.uid)
-                          .snapshots(),
+                  FutureBuilder(
+                      future: _cloudDb.collection('User').doc(_user.uid).get(),
                       builder: (context, AsyncSnapshot<DocumentSnapshot> snap) {
                         if (snap.hasError)
                           return Center(
                             child: Text('ERROR'),
                           );
                         if (snap.hasData) {
+                          var data = snap.data.data();
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Center(
-                                child: Container(
-                                  width: 300,
-                                  height: 57,
-                                  alignment: Alignment.center,
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: 10, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey[200],
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Container(
-                                    child: FittedBox(
-                                      fit: BoxFit.contain,
-                                      child: Text(
-                                        DateFormat('dd/MM/yyyy').format(
-                                            snap.data['Birth'].toDate()),
-                                        style: TextStyle(
-                                          fontSize: 20,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
+                              UserBirthday(
+                                birth: data['Birth'].toDate(),
                               ),
                               GendersSelector(
                                 context: context,
@@ -226,46 +204,15 @@ class _UserInformationState extends State<UserInformation> {
                           return Center(child: CircularProgressIndicator());
                       }),
                   _divider30,
-                  Center(
-                    child: Container(
-                      width: 300,
-                      height: 57,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                            colors: [Colors.red, Colors.orange, Colors.yellow]),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: ListTile(
-                        leading: Icon(
-                          Icons.security,
-                          color: Colors.black,
-                        ),
-                        title: Text(
-                          'Change password',
-                          style: TextStyle(
-                            fontSize: 20,
-                          ),
-                        ),
-                        trailing: Icon(Icons.arrow_forward_ios_outlined),
-                        onTap: () {
-                          Scaffold.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Temporarily not available'),
-                              duration: Duration(seconds: 2),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
+                  ChangePasswordButton(),
                   _divider10,
                   InkWell(
                     splashColor: Theme.of(context).primaryColor,
                     highlightColor: Theme.of(context).primaryColor,
                     onTap: () {
                       submitYesOrNo(context, function: () {
-                        Navigator.of(context).popUntil((route) => route.isFirst);
+                        Navigator.of(context)
+                            .popUntil((route) => route.isFirst);
                         FirebaseAuth.instance.signOut();
                       });
                     },
@@ -283,65 +230,6 @@ class _UserInformationState extends State<UserInformation> {
                 ],
               ),
             ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class GendersSelector extends StatefulWidget {
-  final String value;
-  final Function(String string) function;
-  final BuildContext context;
-
-  const GendersSelector({Key key, this.value, this.function, this.context})
-      : super(key: key);
-
-  @override
-  _GendersSelectorState createState() => _GendersSelectorState();
-}
-
-class _GendersSelectorState extends State<GendersSelector> {
-  String gender;
-
-  List<String> list = ['Male', 'Female'];
-
-  @override
-  void initState() {
-    gender = widget.value;
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    var _cloudDb = FirebaseFirestore.instance;
-    var _user = FirebaseAuth.instance.currentUser;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(
-        2,
-        (index) => Container(
-          width: 150,
-          height: 57,
-          alignment: Alignment.center,
-          child: RadioListTile(
-            title: Text(list[index]),
-            value: list[index],
-            groupValue: gender,
-            onChanged: (val) {
-              gender = val;
-              _cloudDb
-                  .collection('User')
-                  .doc(_user.uid)
-                  .update({'Gender': val});
-              Scaffold.of(widget.context).showSnackBar(
-                SnackBar(
-                  content: Text('Saved your information'),
-                  duration: Duration(seconds: 2),
-                ),
-              );
-            },
           ),
         ),
       ),
